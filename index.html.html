@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V4P3SHOPCAMP</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #111;
+      color: #fff;
+    }
+    header {
+      background-color: #000;
+      color: #c9a86a;
+      text-align: center;
+      padding: 1rem;
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem;
+      z-index: 100;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    section {
+      padding: 2rem;
+      display: none;
+    }
+    section.active {
+      display: block;
+    }
+    .product {
+      background-color: #222;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .product img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      margin-bottom: 0.5rem;
+    }
+    #bloqueo {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding-top: 20%;
+      font-size: 1.5rem;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <header>V4P3SHOPCAMP</header>
+  <nav>
+    <a href="#" onclick="mostrarSeccion('vapes')">Vapes</a>
+    <a href="#" onclick="mostrarSeccion('cart')">Carrito</a>
+    <a href="#" onclick="mostrarSeccion('history')">Historial</a>
+    <a href="#" onclick="mostrarSeccion('panel')">Panel</a>
+  </nav>
+
+  <section id="vapes" class="active"></section>
+
+  <section id="cart">
+    <h2>Tu carrito</h2>
+    <div id="cartItems"></div>
+    <p id="shippingInfo"></p>
+    <p><strong>TU PRODUCTO TIENE GARANTÍA DE 3 DÍAS</strong><br>(válido solo para los comprados, no aplica a los de regalo)</p>
+    <h3>Finalizar compra</h3>
+    <label><input type="radio" name="payment" value="Efectivo" checked /> Efectivo</label>
+    <label><input type="radio" name="payment" value="Transferencia" /> Transferencia</label>
+    <label><input type="radio" name="payment" value="Depósito" /> Depósito</label>
+    <br /><br />
+    <input type="file" id="comprobante" style="display:none;" />
+    <input type="text" id="nombre" placeholder="Tu nombre" />
+    <input type="text" id="contacto" placeholder="Tu contacto" />
+    <br /><br />
+    <button onclick="enviarPedido()">Pagar ahora</button>
+  </section>
+
+ <section id="history">
+  <h2>Historial de compras</h2>
+  <input type="text" id="clienteHistorialNombre" placeholder="Tu nombre para ver tu historial" />
+  <button onclick="verHistorialCliente()">Ver mi historial</button>
+  <div id="historialClientes"></div>
+</section>
+  <section id="panel">
+    <h2>Panel de administración</h2>
+    <div id="adminLogin">
+      <input type="password" id="adminPass" placeholder="Contraseña" />
+      <button onclick="validarAdmin()">Acceder</button>
+    </div>
+    <div id="adminPanel" style="display:none;">
+      <h3>Estado de la tienda</h3>
+      <button onclick="cerrarTienda()">Cerrar tienda</button>
+      <button onclick="abrirTienda()">Abrir tienda</button>
+      <h3>Agregar producto</h3>
+      <input type="text" id="nuevoNombre" placeholder="Nombre del vape" />
+      <input type="number" id="nuevoHits" placeholder="Cantidad de hits" />
+      <input type="number" id="nuevoPrecio" placeholder="Precio" />
+      <input type="text" id="nuevoSabores" placeholder="Ej: Fresa:3, Mango:5" />
+      <input type="file" id="imagenVape" accept="image/*" />
+      <button onclick="agregarProducto()">Agregar</button>
+      <h3>Eliminar cliente</h3>
+      <input type="text" id="clienteNombre" placeholder="Nombre del cliente" />
+      <button onclick="eliminarCliente()">Eliminar cliente</button>
+<h3>Eliminar vape</h3>
+<input type="text" id="vapeEliminar" placeholder="Nombre exacto del vape" />
+<button onclick="eliminarVape()">Eliminar vape</button>
+
+<h3>Eliminar sabor</h3>
+<input type="text" id="vapeSaborNombre" placeholder="Nombre del vape" />
+<input type="text" id="saborEliminar" placeholder="Sabor a eliminar" />
+<button onclick="eliminarSabor()">Eliminar sabor</button>
+     <h3>Ver historial completo</h3>
+<button onclick="verHistorialCompleto()">Mostrar historial</button>
+<div id="adminHistorial"></div>
+ <div id="adminOutput" style="margin-top:1rem;"></div>
+    </div>
+  </section>
+
+  <div id="bloqueo">
+    <p><strong>AGREGANDO MÁS STOCK</strong></p>
+    <p>Favor de volver en un rato o mañana.</p>
+    <p>Gracias.</p>
+    <div style="position:fixed; bottom:10px; right:10px;">
+      <input type="password" id="claveOculta" placeholder="Admin" />
+      <button onclick="desbloquearTienda()">↩️</button>
+    </div>
+  </div>
+
+  <div id="productModal" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#333; padding:1rem; border-radius:8px;">
+    <h2>Producto</h2>
+    <p>Selecciona sabor:</p>
+    <select id="flavorSelect"></select>
+    <p>Selecciona cantidad:</p>
+    <input type="number" id="cantidadInput" min="1" value="1" />
+    <br /><br />
+    <button onclick="addToCart()">Agregar al carrito</button>
+    <button onclick="cerrarModal()">Cancelar</button>
+  </div><script>
+function mostrarSeccion(id) {
+  document.querySelectorAll('section').forEach(sec => {
+    sec.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+let carrito = [];
+let stockSabores = JSON.parse(localStorage.getItem('stockSabores') || '{}');
+
+window.addEventListener('DOMContentLoaded', () => {
+  const vapesGuardados = JSON.parse(localStorage.getItem('vapes') || '[]');
+  const vapesContainer = document.getElementById('vapes');
+  vapesGuardados.forEach(html => {
+    vapesContainer.innerHTML += html;
+  });
+});
+function guardarProductos() {
+  const productos = document.querySelectorAll('.product');
+  const data = [];
+  productos.forEach(prod => {
+    data.push(prod.outerHTML);
+  });
+  localStorage.setItem('vapes', JSON.stringify(data));
+  localStorage.setItem('stockSabores', JSON.stringify(stockSabores));
+}
+
+function mostrarProductosEnPanel() {
+  const productos = document.querySelectorAll('.product');
+  let lista = '<h3>Eliminar productos</h3>';
+  productos.forEach(prod => {
+    const id = prod.id;
+    const nombre = prod.querySelector('h3').innerText;
+    lista += `<p>${nombre} <button onclick="eliminarVisual('${id}')">🗑️ Eliminar</button></p>`;
+  });
+  document.getElementById('adminOutput').innerHTML = lista;
+}
+
+function agregarProducto() {
+  const nombre = document.getElementById('nuevoNombre').value || 'Vape sin nombre';
+  const hits = document.getElementById('nuevoHits').value || 'N/A';
+  const precio = parseFloat(document.getElementById('nuevoPrecio').value) || 100;
+  const saboresInput = document.getElementById('nuevoSabores').value;
+  const imagenInput = document.getElementById('imagenVape');
+  const imagen = imagenInput.files[0];
+
+  const sabores = {};
+  if (saboresInput) {
+    saboresInput.split(',').forEach(par => {
+      const [sabor, cantidad] = par.split(':').map(s => s.trim());
+      if (sabor && cantidad && !isNaN(cantidad)) {
+        sabores[sabor] = parseInt(cantidad);
+      }
+    });
+  }
+
+  if (!stockSabores[nombre]) stockSabores[nombre] = {};
+  Object.assign(stockSabores[nombre], sabores);
+
+  const id = nombre.replace(/\s+/g, '');
+  const crearProductoHTML = (imgSrc) => {
+    const nuevoHTML = `
+      <div class="product" id="${id}">
+        <img src="${imgSrc}" alt="${nombre}" />
+        <h3>${nombre}</h3>
+        <p>${hits} hits</p>
+        <p>$${precio}</p>
+        <button onclick="openModal('${nombre}', ${precio})">Seleccionar</button>
+      </div>
+    `;
+    document.getElementById('vapes').innerHTML += nuevoHTML;
+    guardarProductos();
+    mostrarProductosEnPanel();
+  };
+
+  if (imagen) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      crearProductoHTML(e.target.result);
+    };
+    reader.readAsDataURL(imagen);
+  } else {
+    crearProductoHTML('https://via.placeholder.com/150');
+  }
+}
+
+function openModal(nombre, precio) {
+  document.getElementById('productModal').style.display = 'block';
+  document.getElementById('productModal').setAttribute('data-producto', nombre);
+  document.getElementById('productModal').setAttribute('data-precio', precio);
+  document.querySelector('#productModal h2').innerText = nombre;
+  actualizarSabores(nombre);
+}
+
+function actualizarSabores(nombre) {
+  const sabores = stockSabores[nombre] || {};
+  const select = document.getElementById('flavorSelect');
+  select.innerHTML = '<option value="">--Selecciona--</option>';
+  for (let sabor in sabores) {
+    select.innerHTML += `<option value="${sabor}" data-max="${sabores[sabor]}">${sabor} (${sabores[sabor]} disponibles)</option>`;
+  }
+
+  select.onchange = function () {
+    const max = parseInt(select.selectedOptions[0].getAttribute('data-max'));
+    const cantidadInput = document.getElementById('cantidadInput');
+    cantidadInput.max = max;
+    cantidadInput.value = 1;
+  };
+}
+function cerrarModal() {
+  document.getElementById('productModal').style.display = 'none';
+}
+
+function addToCart() {
+  const sabor = document.getElementById('flavorSelect').value;
+  const cantidad = parseInt(document.getElementById('cantidadInput').value);
+  const nombre = document.getElementById('productModal').getAttribute('data-producto');
+  const precio = parseFloat(document.getElementById('productModal').getAttribute('data-precio'));
+
+  if (!sabor || cantidad < 1) return alert('Selecciona sabor y cantidad válida');
+
+  if (!stockSabores[nombre] || !stockSabores[nombre][sabor] || stockSabores[nombre][sabor] < cantidad) {
+    return alert('No hay suficiente stock de ese sabor');
+  }
+
+  stockSabores[nombre][sabor] -= cantidad;
+  if (stockSabores[nombre][sabor] <= 0) {
+    delete stockSabores[nombre][sabor];
+  }
+
+  if (Object.keys(stockSabores[nombre]).length === 0) {
+    delete stockSabores[nombre];
+    const prod = document.getElementById(nombre.replace(/\s+/g, ''));
+    if (prod) prod.remove();
+  }
+
+  carrito.push({ nombre, precio, sabor, cantidad });
+  actualizarCarrito();
+  guardarProductos();
+  cerrarModal();
+}
+
+function actualizarCarrito() {
+  let contenido = '';
+  let total = 0;
+
+  carrito.forEach(item => {
+    const subtotal = item.precio * item.cantidad;
+    contenido += `<p>${item.nombre} - Sabor: ${item.sabor} - Cantidad: ${item.cantidad} - Subtotal: $${subtotal}</p>`;
+    total += subtotal;
+  });
+
+  const envio = total >= 200 ? 0 : 50;
+  const totalFinal = total + envio;
+
+  document.getElementById('cartItems').innerHTML = contenido + `<p><strong>Total: $${totalFinal}</strong></p>`;
+  document.getElementById('shippingInfo').innerText = envio === 0 ? '✅ Envío gratis' : '🚚 Costo de envío: $50';
+}
+
+function validarAdmin() {
+  const clave = document.getElementById('adminPass').value;
+  if (clave === "V4P3ADMIN2025") {
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    mostrarProductosEnPanel();
+  } else {
+    alert("Contraseña incorrecta.");
+  }
+}
+
+function cerrarTienda() {
+  document.getElementById('bloqueo').style.display = 'block';
+}
+
+function abrirTienda() {
+  document.getElementById('bloqueo').style.display = 'none';
+}
+
+function desbloquearTienda() {
+  const clave = document.getElementById('claveOculta').value;
+  if (clave === "V4P3ADMIN2025") {
+    abrirTienda();
+  } else {
+    alert("Clave incorrecta.");
+  }
+}
+
+function registrarCompra(nombreCliente) {
+  let historial = JSON.parse(localStorage.getItem('historial') || '{}');
+  historial[nombreCliente] = (historial[nombreCliente] || 0) + 1;
+
+  if (historial[nombreCliente] >= 5) {
+    alert(`🎁 ${nombreCliente} ha recibido un regalo por 5 compras!`);
+    historial[nombreCliente] -= 5;
+  }
+
+  localStorage.setItem('historial', JSON.stringify(historial));
+guardarProductos();
+}
+
+function enviarPedido() {
+  const metodo = document.querySelector('input[name="payment"]:checked').value;
+  const nombre = document.getElementById('nombre').value;
+  const contacto = document.getElementById('contacto').value;
+  const comprobante = document.getElementById('comprobante');
+
+  if (!nombre || !contacto) return alert('Completa tu información');
+
+  let resumen = '';
+  let total = 0;
+
+  carrito.forEach(item => {
+    const subtotal = item.precio * item.cantidad;
+    resumen += `\n- ${item.nombre} | Sabor: ${item.sabor} | Cantidad: ${item.cantidad} | Subtotal: $${subtotal}`;
+    total += subtotal;
+  });
+
+  const envio = total >= 200 ? 0 : 50;
+  const totalFinal = total + envio;
+
+  if (metodo !== 'Efectivo' && comprobante.files.length === 0) {
+    alert('Sube tu comprobante antes de continuar');
+    return;
+  }
+
+  const mensaje = `🛍️ Pedido V4P3SHOPCAMP\n👤 Nombre: ${nombre}\n📞 Contacto: ${contacto}\n💳 Método de pago: ${metodo}\n📦 Productos:${resumen}\n🚚 Envío: $${envio}\n💰 Total: $${totalFinal}\n✅ TU PRODUCTO TIENE GARANTÍA DE 3 DÍAS (válido solo para los comprados, no aplica a los de regalo)`;
+
+  window.open(`https://wa.me/529811851149?text=${encodeURIComponent(mensaje)}`);
+  registrarCompra(nombre);
+  carrito = [];
+  actualizarCarrito();
+}
+function eliminarVape() {
+  const nombre = document.getElementById('vapeEliminar').value.trim();
+  if (!nombre) return alert("Escribe el nombre del vape");
+
+  const id = nombre.replace(/\s+/g, '');
+  const vape = document.getElementById(id);
+  if (vape) vape.remove();
+
+  delete stockSabores[nombre];
+  guardarProductos();
+  mostrarProductosEnPanel();
+  alert(`Vape "${nombre}" eliminado`);
+}
+
+function eliminarSabor() {
+  const nombre = document.getElementById('vapeSaborNombre').value.trim();
+  const sabor = document.getElementById('saborEliminar').value.trim();
+  if (!nombre || !sabor) return alert("Completa ambos campos");
+
+  if (stockSabores[nombre] && stockSabores[nombre][sabor]) {
+    delete stockSabores[nombre][sabor];
+
+    if (Object.keys(stockSabores[nombre]).length === 0) {
+      delete stockSabores[nombre];
+      const prod = document.getElementById(nombre.replace(/\s+/g, ''));
+      if (prod) prod.remove();
+    }
+
+    guardarProductos();
+    mostrarProductosEnPanel();
+    alert(`Sabor "${sabor}" eliminado del vape "${nombre}"`);
+  } else {
+    alert("Ese sabor no existe en ese vape");
+  }
+}
+function verHistorialCliente() {
+  const nombre = document.getElementById('clienteHistorialNombre').value.trim();
+  const historial = JSON.parse(localStorage.getItem('historial') || '{}');
+  const cantidad = historial[nombre] || 0;
+
+  document.getElementById('historialClientes').innerHTML = `<p>${nombre} tiene ${cantidad} compras registradas.</p>`;
+}
+
+function verHistorialCompleto() {
+  const historial = JSON.parse(localStorage.getItem('historial') || '{}');
+  let html = '<h4>Historial de todos los clientes:</h4>';
+  for (let nombre in historial) {
+    html += `<p>${nombre}: ${historial[nombre]} compras <button onclick="marcarEntregado('${nombre}')">✅ Marcar entregado</button></p>`;
+  }
+  document.getElementById('adminHistorial').innerHTML = html;
+}
+
+function marcarEntregado(nombreCliente) {
+  let historial = JSON.parse(localStorage.getItem('historial') || '{}');
+  if (!historial[nombreCliente]) return alert("Este cliente no tiene compras registradas.");
+
+  historial[nombreCliente] += 1;
+
+  if (historial[nombreCliente] >= 5) {
+    alert(`🎁 ${nombreCliente} ha recibido un regalo por 5 compras entregadas!`);
+    historial[nombreCliente] -= 5;
+  }
+
+  localStorage.setItem('historial', JSON.stringify(historial));
+  guardarProductos();
+  verHistorialCompleto();
+}
+function eliminarVisual(id) {
+  const producto = document.getElementById(id);
+  if (producto) producto.remove();
+
+  // Buscar el nombre del producto por su ID
+  const nombre = producto.querySelector('h3').innerText;
+
+  // Eliminar sabores asociados
+  delete stockSabores[nombre];
+
+  guardarProductos();
+  mostrarProductosEnPanel();
+  alert(`Producto "${nombre}" eliminado`);
+}
+</script>
+</body>
+</html>
